@@ -38,25 +38,30 @@ p {
   color: #0969da;
 }
 
+/* PRIMARY BUTTON - Simple with hover effects */
 .primary-btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px 24px;
   background: #2da44e;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 600;
-  margin: 10px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(45, 164, 78, 0.3);
 }
 
 .primary-btn:hover {
-  background: #2c974b;
+  background: #2c974b;  /* Slightly darker green */
+  transform: scale(1.02);  /* Slightly enlarges */
+  box-shadow: 0 6px 16px rgba(45, 164, 78, 0.4);
 }
 
 .primary-btn:active {
-  background: #298e46;
+  background: #298e46;  /* Even darker when clicked */
+  transform: scale(1);  /* Back to normal size */
 }
 
 .secondary-btn {
