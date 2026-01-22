@@ -19,6 +19,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ extensionId: chrome.runtime.id});
         return true;
     }
+
+    if (request.action === 'submissionDetected') {
+        chrome.storage.local.set({
+            latestSubmission: request.data
+        });
+
+        sendResponse({success: true})
+        return true; 
+    }
 });
 
 async function handleOAuthFlow() {

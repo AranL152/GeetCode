@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "L/NeetCode to GitHub",
+  "name": "LeetCode to GitHub",
   "version": "1.0.0",
   "permissions": [
     "storage",
-    "identity"
+    "identity",
+    "scripting"
   ],
   "host_permissions": [
     "https://api.github.com/*",
-    "https://github.com/*"
+    "https://github.com/*",
+    "https://leetcode.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -16,5 +18,22 @@
   },
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://leetcode.com/*",
+        "*://*.leetcode.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["inject.js"],
+      "matches": ["*://leetcode.com/*", "*://*.leetcode.com/*"]
+    }
+  ]
 }

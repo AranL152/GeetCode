@@ -1,17 +1,17 @@
-// popup.js - GitHub OAuth and Repo Management
 
-// 🟢 NEW - Track repos
+
+
 let currentToken = null;
 let userRepos = [];
 
-// ⚪ ORIGINAL
+
 document.addEventListener('DOMContentLoaded', async () => {
   await displayExtensionInfo();
   await checkAuthStatus();
   setupEventListeners();
 });
 
-// ⚪ ORIGINAL
+
 async function displayExtensionInfo() {
   chrome.runtime.sendMessage({ action: 'getExtensionId' }, (response) => {
     const extensionId = response.extensionId;
@@ -22,23 +22,25 @@ async function displayExtensionInfo() {
   });
 }
 
-// MODIFIED - was original, now has repo loading
+
 async function checkAuthStatus() {
   const { githubToken, selectedRepo } = await chrome.storage.local.get(['githubToken', 'selectedRepo']); // 🟢 Added selectedRepo
 
-  // ⚪ ORIGINAL PART
+  
   if (githubToken) {
     const isValid = await verifyToken(githubToken);
 
     if (isValid) {
-      currentToken = githubToken; // 🟢 NEW - store token
+      currentToken = githubToken; 
       await showMainScreen(githubToken);
 
-      // 🟢 NEW - Load repos
+     
       await loadUserRepos();
       if (selectedRepo) {
         displaySelectedRepo(selectedRepo);
       }
+
+      await displayLatestSubmission();
     } else {
       await chrome.storage.local.remove(['githubToken', 'selectedRepo']); // 🟢 Also remove selectedRepo
       showAuthScreen();
@@ -48,7 +50,7 @@ async function checkAuthStatus() {
   }
 }
 
-// ⚪ ORIGINAL
+
 async function verifyToken(token) {
   try {
     const response = await fetch('https://api.github.com/user', {
@@ -65,18 +67,18 @@ async function verifyToken(token) {
   }
 }
 
-// ⚪ ORIGINAL
+
 function showAuthScreen() {
   document.getElementById('authScreen').style.display = 'block';
   document.getElementById('mainScreen').style.display = 'none';
 }
 
-// ⚪ ORIGINAL
+
 async function showMainScreen(token) {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('mainScreen').style.display = 'block';
 
-  // Force repo-section to display (optional, ensures it shows)
+  
   const repoSection = document.querySelector('.repo-section');
   if (repoSection) repoSection.style.display = 'block';
 
@@ -99,9 +101,9 @@ async function showMainScreen(token) {
 }
 
 
-// 🟢 🟢 🟢 EVERYTHING BELOW IS NEW FOR PHASE 2 🟢 🟢 🟢
 
-// Load user's repositories
+
+
 async function loadUserRepos() {
   if (!currentToken) return;
 
@@ -180,9 +182,9 @@ function hideStatus() {
   statusDiv.style.display = 'none';
 }
 
-// Setup event listeners - MODIFIED
+
 function setupEventListeners() {
-  // ⚪ ORIGINAL - Connect button
+ 
   document.getElementById('connectBtn').addEventListener('click', async () => {
     const errorDiv = document.getElementById('authError');
     const btn = document.getElementById('connectBtn');
@@ -196,9 +198,9 @@ function setupEventListeners() {
       btn.textContent = 'Connect to GitHub';
 
       if (response.success) {
-        currentToken = response.token; // 🟢 NEW - store token
+        currentToken = response.token; 
         await showMainScreen(response.token);
-        await loadUserRepos(); // 🟢 NEW - load repos after auth
+        await loadUserRepos(); 
       } else {
         errorDiv.textContent = `Authentication failed: ${response.error}`;
         errorDiv.classList.add('show');
@@ -206,7 +208,7 @@ function setupEventListeners() {
     });
   });
 
-  // 🟢 NEW - Select repo button
+ 
   document.getElementById('selectRepoBtn').addEventListener('click', async () => {
     const select = document.getElementById('repoSelect');
     const selectedRepo = select.value;
@@ -223,7 +225,7 @@ function setupEventListeners() {
     setTimeout(hideStatus, 3000);
   });
 
-  // 🟢 NEW - Create repo button
+  
   document.getElementById('createRepoBtn').addEventListener('click', async () => {
     const repoName = document.getElementById('newRepoName').value.trim();
     const description = document.getElementById('newRepoDescription').value.trim();
@@ -286,11 +288,42 @@ function setupEventListeners() {
     }
   });
 
-  // ⚪ ORIGINAL - Disconnect button (with 🟢 NEW repo clearing)
+  
   document.getElementById('disconnectBtn').addEventListener('click', async () => {
-    await chrome.storage.local.remove(['githubToken', 'selectedRepo']); // 🟢 Also remove selectedRepo
-    currentToken = null; // 🟢 NEW
-    userRepos = []; // 🟢 NEW
+    await chrome.storage.local.remove(['githubToken', 'selectedRepo']); 
+    currentToken = null; 
+    userRepos = []; 
     showAuthScreen();
   });
+}
+
+async function displayLatestSubmission() {
+  const {latestSubmission} = await chrome.storage.local.get(['latestSubmission']);
+  const submissionText = document.getElementById('latestSubmission');
+
+  if (!latestSubmission) {
+    submissionText.innerHTML = '<p class="no-submission">No submissions detected yet. Solve a problem on LeetCode!</p>';
+    submissionText.classList.remove('has-submission');
+    return;
+  }
+
+  submissionText.classList.add('has-submission');
+  submissionText.innerHTML = `
+    <div class="submission-info">
+      <span class="submission-label">Problem:</span>
+      <span class="submission-value">${latestSubmission.problemTitle}</span>
+    </div>
+    <div class="submission-info">
+      <span class="submission-label">Language:</span>
+      <span class="submission-value">${latestSubmission.language}</span>
+    </div>
+    <div class="submission-info">
+      <span class="submission-label">Status:</span>
+      <span class="submission-value">✅ ${latestSubmission.status}</span>
+    </div>
+    <div class="submission-info">
+      <span class="submission-label">Time:</span>
+      <span class="submission-value">${new Date(latestSubmission.timestamp).toLocaleString()}</span>
+    </div>
+  `;
 }

@@ -301,3 +301,53 @@ p {
   border: 1px solid #54aeff;
   display: block;
 }
+
+/* Add to existing popup.css */
+
+.submission-section {
+  background: #f6f8fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.submission-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #24292e;
+}
+
+.submission-display {
+  background: white;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.submission-display.has-submission {
+  background: #dafbe1;
+  border-color: #2da44e;
+}
+
+.submission-display .submission-info {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.submission-display .submission-label {
+  font-weight: 600;
+  color: #24292e;
+}
+
+.submission-display .submission-value {
+  color: #586069;
+  font-family: 'Monaco', 'Menlo', monospace;
+  margin-left: 8px;
+}
+
+.no-submission {
+  color: #586069;
+  font-size: 13px;
+  margin: 0;
+  text-align: center;
+}
