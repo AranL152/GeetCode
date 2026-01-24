@@ -1,5 +1,6 @@
 importScripts('config.js')
 
+//check for messages 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'authenticate') {
         handleOAuthFlow()
@@ -19,7 +20,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ extensionId: chrome.runtime.id});
         return true;
     }
-
+    
+    
     if (request.action === 'submissionDetected') {
         chrome.storage.local.set({
             latestSubmission: request.data

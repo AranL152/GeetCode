@@ -1,9 +1,9 @@
-// inject.js - Runs in page context, not isolated
+
 
 (function() {
   'use strict';
   
-  console.log('🔥 Injected script running in page context');
+  console.log('Injected script running in page context');
   
   let pendingSubmission = null;
   const originalFetch = window.fetch;

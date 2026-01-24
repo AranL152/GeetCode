@@ -3,6 +3,8 @@
 
 let currentToken = null;
 let userRepos = [];
+let githubUserLogin = null; 
+ 
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -92,6 +94,7 @@ async function showMainScreen(token) {
 
     if (response.ok) {
       const user = await response.json();
+      githubUserLogin = user.login;
       document.getElementById('userInfo').textContent = `Logged in as @${user.login}`;
     }
   } catch (error) {
@@ -160,7 +163,7 @@ function populateRepoDropdown(repos) {
 function displaySelectedRepo(repoFullName) {
   const repoDisplay = document.getElementById('currentRepo');
 
-  if (repoFullName) {
+  if (repoFullName) { 
     repoDisplay.textContent = repoFullName;
     repoDisplay.classList.add('active');
   } else {
@@ -274,7 +277,7 @@ function setupEventListeners() {
       document.getElementById('isPrivate').checked = false;
 
       await loadUserRepos();
-      await chrome.storage.local.set({ selectedRepo: newRepo.full_name });
+      await chrome.storage.local.set({ selectedRepo: newRepo.name });
       displaySelectedRepo(newRepo.full_name);
 
       setTimeout(hideStatus, 5000);
@@ -285,6 +288,71 @@ function setupEventListeners() {
     } finally {
       btn.disabled = false;
       btn.textContent = 'Create Repository';
+    }
+  });
+
+  
+  document.getElementById('PushtoGithubBtn').addEventListener('click', async () => {
+    let commitMessage = document.getElementById('newcommitMessage').value.trim();
+    const {latestSubmission} = await chrome.storage.local.get(['latestSubmission']);
+    const { selectedRepo } = await chrome.storage.local.get('selectedRepo');
+
+    const safeTitle = latestSubmission.problemTitle.replace(/[\/\\?%*:|"<>]/g, '-');
+    if (!commitMessage) {
+      commitMessage = `${safeTitle} Solved`;
+    }
+
+    const btn = document.getElementById('PushtoGithubBtn');
+    btn.disabled = true;
+    btn.textContent = 'Pushing...';
+    showStatus('Pushing to selected repository', 'info');
+
+    //code here needs to get the problem title, code -> create file
+    const language = latestSubmission.language.toLowerCase();
+
+    const extensionMap = {
+      python: 'py',
+      python3: 'py',
+      javascript: 'js',
+      typescript: 'ts',
+      'c++': 'cpp',
+      java: 'java'
+    };
+
+    const ext = extensionMap[language] || 'txt';
+
+    const filePath =`${safeTitle}.${ext}`;
+
+
+
+    try {
+      const response = await fetch(`https://api.github.com/repos/${(String(selectedRepo))}/contents/${String((filePath))}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${currentToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+        },
+        body: JSON.stringify({
+          message: commitMessage,
+          content: btoa(latestSubmission.code),
+          branch: "main"
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to push to Github');
+      }
+
+      document.getElementById('newcommitMessage').value = '';
+      showStatus('Commit successful', 'success');
+      setTimeout(hideStatus, 5000);
+
+    } catch (error) {
+      console.error('Error pushing to repo:', error);
+    } finally {
+      btn.disabled = false
+      btn.textContent = 'Push'
     }
   });
 
@@ -300,6 +368,7 @@ function setupEventListeners() {
 async function displayLatestSubmission() {
   const {latestSubmission} = await chrome.storage.local.get(['latestSubmission']);
   const submissionText = document.getElementById('latestSubmission');
+   
 
   if (!latestSubmission) {
     submissionText.innerHTML = '<p class="no-submission">No submissions detected yet. Solve a problem on LeetCode!</p>';
@@ -324,6 +393,6 @@ async function displayLatestSubmission() {
     <div class="submission-info">
       <span class="submission-label">Time:</span>
       <span class="submission-value">${new Date(latestSubmission.timestamp).toLocaleString()}</span>
-    </div>
+    </div> 
   `;
 }
