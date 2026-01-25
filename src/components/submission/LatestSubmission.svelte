@@ -50,7 +50,8 @@
       javascript: '#f9e2af',
       typescript: '#89b4fa',
       'c++': '#f38ba8',
-      cpp: '#f38ba8',
+      'c#': '#a6e3a1',
+      csharp: '#a6e3a1',
       java: '#fab387',
       c: '#a6adc8',
       go: '#89dceb',
@@ -58,6 +59,18 @@
       ruby: '#f38ba8'
     };
     return colors[lang.toLowerCase()] || '#cba6f7';
+  }
+
+  function formatLanguageName(lang: string): string {
+    const names: Record<string, string> = {
+      cpp: 'C++',
+      python3: 'Python',
+      javascript: 'JavaScript',
+      typescript: 'TypeScript',
+      csharp: 'C#',
+      golang: 'Go'
+    };
+    return names[lang.toLowerCase()] || lang;
   }
 </script>
 
@@ -86,7 +99,7 @@
 
       <div class="tags">
         <span class="tag" style="--tag-color: {getLanguageColor($latestSubmission.language)}">
-          {$latestSubmission.language}
+          {formatLanguageName($latestSubmission.language)}
         </span>
       </div>
 

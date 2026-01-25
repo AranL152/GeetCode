@@ -2,9 +2,22 @@
 
 (function() {
   'use strict';
-  
+
   console.log('Injected script running in page context');
-  
+
+  // Normalize language codes to proper display names
+  function normalizeLanguage(lang) {
+    const languageNames = {
+      cpp: 'C++',
+      python3: 'Python',
+      javascript: 'JavaScript',
+      typescript: 'TypeScript',
+      csharp: 'C#',
+      golang: 'Go'
+    };
+    return languageNames[lang] || lang;
+  }
+
   let pendingSubmission = null;
   const originalFetch = window.fetch;
   
@@ -40,7 +53,7 @@
         if (responseData.submission_id) {
           pendingSubmission = {
             submissionId: responseData.submission_id,
-            language: requestData?.lang || 'unknown',
+            language: normalizeLanguage(requestData?.lang) || 'unknown',
             code: requestData?.typed_code || 'unknown',
             questionId: requestData?.question_id || 'unknown',
             problemUrl: window.location.href,

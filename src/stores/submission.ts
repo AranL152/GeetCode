@@ -13,7 +13,9 @@ const extensionMap: Record<string, string> = {
   python3: 'py',
   javascript: 'js',
   typescript: 'ts',
-  'c++': 'cpp',
+  'cpp': 'c++',
+  'c#': 'cs',
+  csharp: 'cs',
   java: 'java',
   c: 'c',
   go: 'go',
@@ -22,8 +24,7 @@ const extensionMap: Record<string, string> = {
   swift: 'swift',
   kotlin: 'kt',
   scala: 'scala',
-  php: 'php',
-  csharp: 'cs'
+  php: 'php'
 };
 
 export async function loadLatestSubmission(): Promise<void> {
