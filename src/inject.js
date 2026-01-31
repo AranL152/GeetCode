@@ -103,6 +103,8 @@
           }));
           
           pendingSubmission = null;
+        } else if (responseData.state === 'SUCCESS' && responseData.status_msg === 'Wrong Answer') {
+          pendingSubmission = null; 
         }
       } catch (e) {
         console.error('Error:', e);
