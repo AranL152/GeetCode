@@ -3,3 +3,4 @@ dist/
 .vite/
 config.js
 src/lib/config.ts
+.DS_Store

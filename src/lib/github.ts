@@ -66,6 +66,25 @@ export async function pushFile(
   commitMessage: string,
   branch = 'main'
 ): Promise<void> {
+  // Check if file already exists to get its sha (required for updates)
+  let sha: string | undefined;
+  const existingResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/${filePath}?ref=${branch}`, {
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  });
+  if (existingResponse.ok) {
+    const existing = await existingResponse.json();
+    sha = existing.sha;
+
+    // Skip push if content is identical
+    const existingContent = existing.content?.replace(/\n/g, '');
+    if (existingContent === btoa(content)) {
+      return;
+    }
+  }
+
   const response = await fetch(`https://api.github.com/repos/${repoFullName}/contents/${filePath}`, {
     method: 'PUT',
     headers: {
@@ -75,7 +94,8 @@ export async function pushFile(
     body: JSON.stringify({
       message: commitMessage,
       content: btoa(content),
-      branch
+      branch,
+      ...(sha && { sha })
     })
   });
 

@@ -25,8 +25,8 @@
     onStatusChange('Pushing to repository...', 'info');
 
     try {
-      await pushToGitHub(commitMessage || undefined);
-      onStatusChange('Successfully pushed to GitHub!', 'success');
+      const pushed = await pushToGitHub(commitMessage || undefined);
+      onStatusChange(pushed ? 'Successfully pushed to GitHub!' : 'Code already up-to-date', 'success');
       commitMessage = '';
       showPushForm = false;
     } catch (error) {
