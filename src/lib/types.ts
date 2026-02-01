@@ -34,6 +34,7 @@ export interface GitHubRepo {
 
 export interface StorageData {
   githubToken?: string;
+  tokenCreatedAt?: number;
   selectedRepo?: string;
   latestSubmission?: SubmissionData;
 }

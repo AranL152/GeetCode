@@ -1,5 +1,5 @@
 import { writable, derived, get } from 'svelte/store';
-import { githubToken } from './auth';
+import { githubToken, handleInvalidToken } from './auth';
 import type { GitHubRepo } from '../lib/types';
 
 export const repos = writable<GitHubRepo[]>([]);
@@ -23,6 +23,11 @@ export async function loadRepos(): Promise<void> {
         'Accept': 'application/vnd.github.v3+json'
       }
     });
+
+    if (response.status === 401) {
+      await handleInvalidToken();
+      return;
+    }
 
     if (!response.ok) {
       throw new Error('Failed to fetch repositories');
@@ -72,6 +77,11 @@ export async function createRepo(options: CreateRepoOptions): Promise<GitHubRepo
       private: options.isPrivate
     })
   });
+
+  if (response.status === 401) {
+    await handleInvalidToken();
+    throw new Error('Session expired — please sign in again');
+  }
 
   if (!response.ok) {
     const error = await response.json();

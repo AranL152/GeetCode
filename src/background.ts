@@ -52,13 +52,14 @@ chrome.runtime.onMessage.addListener((
 async function handleOAuthFlow(): Promise<string> {
   const extensionId = chrome.runtime.id;
   const redirectUri = `https://${extensionId}.chromiumapp.org/`;
+  const state = generateRandomState();
 
   const authUrl = new URL('https://github.com/login/oauth/authorize');
   authUrl.searchParams.append('client_id', CONFIG.CLIENT_ID);
   authUrl.searchParams.append('redirect_uri', redirectUri);
   authUrl.searchParams.append('scope', CONFIG.SCOPES);
-  authUrl.searchParams.append('state', generateRandomState());
-  
+  authUrl.searchParams.append('state', state);
+
   try {
     const responseUrl = await chrome.identity.launchWebAuthFlow({
       url: authUrl.toString(),
@@ -70,6 +71,12 @@ async function handleOAuthFlow(): Promise<string> {
     }
 
     const url = new URL(responseUrl);
+    const returnedState = url.searchParams.get('state');
+
+    if (returnedState !== state) {
+      throw new Error('OAuth state mismatch — possible CSRF attack');
+    }
+
     const code = url.searchParams.get('code');
 
     if (!code) {
@@ -77,7 +84,10 @@ async function handleOAuthFlow(): Promise<string> {
     }
     //token exchange
     const token = await exchangeCodeForToken(code, redirectUri);
-    await chrome.storage.local.set({ githubToken: token });
+    await chrome.storage.local.set({
+      githubToken: token,
+      tokenCreatedAt: Date.now()
+    });
 
     return token;
   } catch (error) {

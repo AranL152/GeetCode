@@ -1,5 +1,9 @@
 import { writable, derived, type Readable } from 'svelte/store';
 import type { GitHubUser } from '../lib/types';
+import { clearAuth } from '../lib/storage';
+
+// Re-verify tokens older than 7 days
+const TOKEN_REVALIDATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const githubToken = writable<string | null>(null);
 export const githubUser = writable<GitHubUser | null>(null);
@@ -12,18 +16,25 @@ export async function checkAuthStatus(): Promise<void> {
   authError.set(null);
 
   try {
-    const { githubToken: storedToken } = await chrome.storage.local.get(['githubToken']);
+    const { githubToken: storedToken, tokenCreatedAt } = await chrome.storage.local.get(['githubToken', 'tokenCreatedAt']);
 
     if (storedToken) {
-      const isValid = await verifyToken(storedToken);
+      const tokenAge = Date.now() - (tokenCreatedAt || 0);
+      const needsRevalidation = !tokenCreatedAt || tokenAge > TOKEN_REVALIDATION_MS;
 
-      if (isValid) {
+      if (needsRevalidation) {
+        const isValid = await verifyToken(storedToken);
+
+        if (isValid) {
+          await chrome.storage.local.set({ tokenCreatedAt: Date.now() });
+          githubToken.set(storedToken);
+          await fetchUserInfo(storedToken);
+        } else {
+          await handleInvalidToken();
+        }
+      } else {
         githubToken.set(storedToken);
         await fetchUserInfo(storedToken);
-      } else {
-        await chrome.storage.local.remove(['githubToken', 'selectedRepo']);
-        githubToken.set(null);
-        githubUser.set(null);
       }
     }
   } catch (error) {
@@ -32,6 +43,14 @@ export async function checkAuthStatus(): Promise<void> {
   } finally {
     authLoading.set(false);
   }
+}
+
+
+export async function handleInvalidToken(): Promise<void> {
+  await clearAuth();
+  githubToken.set(null);
+  githubUser.set(null);
+  authError.set('Session expired. Please sign in again.');
 }
 
 async function verifyToken(token: string): Promise<boolean> {
@@ -88,7 +107,7 @@ export async function authenticate(): Promise<void> {
 }
 
 export async function disconnect(): Promise<void> {
-  await chrome.storage.local.remove(['githubToken', 'selectedRepo']);
+  await clearAuth();
   githubToken.set(null);
   githubUser.set(null);
 }

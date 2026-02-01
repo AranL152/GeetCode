@@ -1,11 +1,11 @@
 import type { StorageData, SubmissionData } from './types';
 
 export async function getStorageData(): Promise<StorageData> {
-  return chrome.storage.local.get(['githubToken', 'selectedRepo', 'latestSubmission']) as Promise<StorageData>;
+  return chrome.storage.local.get(['githubToken', 'tokenCreatedAt', 'selectedRepo', 'latestSubmission']) as Promise<StorageData>;
 }
 
 export async function setGithubToken(token: string): Promise<void> {
-  await chrome.storage.local.set({ githubToken: token });
+  await chrome.storage.local.set({ githubToken: token, tokenCreatedAt: Date.now() });
 }
 
 export async function setSelectedRepo(repo: string): Promise<void> {
@@ -17,7 +17,7 @@ export async function setLatestSubmission(submission: SubmissionData): Promise<v
 }
 
 export async function clearAuth(): Promise<void> {
-  await chrome.storage.local.remove(['githubToken', 'selectedRepo']);
+  await chrome.storage.local.remove(['githubToken', 'tokenCreatedAt', 'selectedRepo']);
 }
 
 export async function getExtensionId(): Promise<string> {

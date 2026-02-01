@@ -1,5 +1,5 @@
 import { writable, get } from 'svelte/store';
-import { githubToken } from './auth';
+import { githubToken, handleInvalidToken } from './auth';
 import { selectedRepo } from './repos';
 import type { SubmissionData } from '../lib/types';
 
@@ -62,6 +62,11 @@ export async function pushToGitHub(commitMessage?: string): Promise<boolean> {
         'Accept': 'application/vnd.github.v3+json'
       }
     });
+    if (existingResponse.status === 401) {
+      await handleInvalidToken();
+      throw new Error('Session expired — please sign in again');
+    }
+
     if (existingResponse.ok) {
       const existing = await existingResponse.json();
       sha = existing.sha;
@@ -87,6 +92,11 @@ export async function pushToGitHub(commitMessage?: string): Promise<boolean> {
         ...(sha && { sha })
       })
     });
+
+    if (response.status === 401) {
+      await handleInvalidToken();
+      throw new Error('Session expired — please sign in again');
+    }
 
     if (!response.ok) {
       const error = await response.json();

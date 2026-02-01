@@ -26,14 +26,21 @@
     onStatusChange(`Repository set to ${selectedValue}`, 'success');
   }
 
-  async function handleCreateRepo() {
-    if (!newRepoName.trim()) {
-      onStatusChange('Please enter a repository name', 'error');
-      return;
-    }
+  function validateRepoName(name: string): string | null {
+    if (!name.trim()) return 'Please enter a repository name';
+    if (name.length > 100) return 'Name must be 100 characters or fewer';
+    if (!/^[a-zA-Z0-9_.-]+$/.test(name)) return 'Only letters, numbers, hyphens, dots, and underscores allowed';
+    if (name.startsWith('.')) return 'Name cannot start with a dot';
+    if (name === '.' || name === '..') return 'Name cannot be "." or ".."';
+    if (name.endsWith('.git') || name.endsWith('.atom')) return `Name cannot end with "${name.slice(name.lastIndexOf('.'))}"`;
+    if (name.includes('..')) return 'Name cannot contain consecutive dots';
+    return null;
+  }
 
-    if (!/^[a-zA-Z0-9_.-]+$/.test(newRepoName)) {
-      onStatusChange('Invalid repository name', 'error');
+  async function handleCreateRepo() {
+    const validationError = validateRepoName(newRepoName);
+    if (validationError) {
+      onStatusChange(validationError, 'error');
       return;
     }
 
