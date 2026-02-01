@@ -78,13 +78,24 @@
     if (url.includes('check/')) {
       console.log('🔍 Check detected');
       
-      const clonedResponse = response.clone();
+      
+
+
+      
       
       try {
-        const responseData = await clonedResponse.json();
+        const clonedResponse = response.clone();
+        const text = await clonedResponse.text();
+        const raw = text ? JSON.parse(text) : null;
+
+        if (!raw) return response;
+
+
+        const result = raw?.data ?? raw;
         
-        if (responseData.state === 'SUCCESS' && 
-            responseData.status_msg === 'Accepted' && 
+
+        if (result.state === 'SUCCESS' && 
+            result.status_msg === 'Accepted' && 
             pendingSubmission) {
           
           console.log('🎉 ========== ACCEPTED! ==========');
@@ -92,8 +103,15 @@
           const submissionData = {
             ...pendingSubmission,
             timestamp: new Date().toISOString(),
-            status: responseData.status_msg
+            status: result.status_msg,
+            runtime: result.status_runtime?? null,
+            runtimePercentile: result.runtime_percentile != null ? Math.round(Number(result.runtime_percentile)) : null,
+            memory: result.status_memory ?? null,
+            memoryPercentile: result.memory_percentile != null ? Math.round(Number(result.memory_percentile)) : null
           };
+
+          console.log('📦 submissionData:', submissionData);
+
           
           console.log('Sending to extension');
           
@@ -103,7 +121,7 @@
           }));
           
           pendingSubmission = null;
-        } else if (responseData.state === 'SUCCESS' && responseData.status_msg === 'Wrong Answer') {
+        } else if (result.state === 'SUCCESS' && result.status_msg === 'Wrong Answer') {
           pendingSubmission = null; 
         }
       } catch (e) {

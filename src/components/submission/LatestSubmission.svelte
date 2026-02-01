@@ -123,7 +123,7 @@
           <input
             type="text"
             class="input"
-            placeholder="Commit message (optional)"
+            placeholder="{$latestSubmission.runtime} (beats {$latestSubmission.runtimePercentile}%) | {$latestSubmission.memory}, (beats {$latestSubmission.memoryPercentile} %)"
             bind:value={commitMessage}
           />
           <div class="push-actions">
